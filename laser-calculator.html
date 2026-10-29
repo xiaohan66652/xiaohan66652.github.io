@@ -1,0 +1,510 @@
+---
+layout: null
+permalink: /laser-calculator/
+---
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超快激光参数计算器 (Burst版)</title>
+    <meta name="description" content="Xiaohan 编写的超快激光参数计算器，支持 Burst、峰值功率、功率密度和瑞利长度计算。">
+    <link rel="shortcut icon" href="{{ site.baseurl }}/img/favicon.ico">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --panel-bg: #ffffff;
+            --border: #e2e8f0;
+            --text: #334155;
+            --text-light: #64748b;
+            --burst-color: #8b5cf6;
+            --rayleigh-color: #0d9488;
+        }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.5; }
+        .site-back {
+            display: flex;
+            align-items: center;
+            width: fit-content;
+            margin: -4px auto 14px;
+            padding: 8px 13px;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--text);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgb(0 0 0 / 0.04);
+        }
+        .site-back:hover { border-color: var(--primary); color: var(--primary); }
+        
+        .container { max-width: 1200px; margin: 0 auto; display: flex; gap: 20px; flex-wrap: wrap; }
+        
+        .calc-panel { flex: 1 1 600px; background: var(--panel-bg); padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        .formula-panel { flex: 1 1 300px; background: #1e293b; color: #e2e8f0; padding: 24px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+        
+        h2 { margin-top: 0; font-size: 1.25rem; border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; }
+        h3 { font-size: 1rem; margin-top: 24px; margin-bottom: 12px; color: var(--primary); }
+        .formula-panel h3 { color: #93c5fd; border-bottom: 1px solid #334155; padding-bottom: 5px; }
+        
+        .input-group { display: grid; grid-template-columns: 1fr 100px 80px; gap: 10px; margin-bottom: 12px; align-items: center; }
+        .input-group label { font-weight: 500; font-size: 0.9rem; }
+        input[type="number"] { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; transition: border-color 0.2s; }
+        input[type="number"]:focus { border-color: var(--primary); }
+        select { padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: #fff; outline: none; cursor: pointer; }
+        
+        .radio-group { display: flex; gap: 15px; margin-bottom: 15px; background: var(--bg); padding: 10px; border-radius: 6px; flex-wrap: wrap;}
+        .radio-group label { display: flex; align-items: center; gap: 5px; font-size: 0.9rem; cursor: pointer; }
+        
+        /* Burst 模式专属样式 */
+        .burst-section { background: #f5f3ff; border: 1px dashed var(--burst-color); padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .burst-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-weight: bold; color: var(--burst-color); }
+        .burst-inputs { display: none; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .burst-inputs.active { display: grid; }
+
+        .results { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .result-card { background: var(--bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border); }
+        .result-label { font-size: 0.85rem; color: var(--text-light); margin-bottom: 5px; }
+        .result-value { font-size: 1.25rem; font-weight: bold; color: var(--primary); word-break: break-all; }
+        .result-value span { font-size: 0.85rem; font-weight: normal; color: var(--text-light); }
+        
+        /* 瑞利长度卡片 */
+        .result-card.rayleigh-card { border-color: #99f6e4; background: #f0fdfa; }
+        .result-card.rayleigh-card .result-value { color: var(--rayleigh-color); }
+        .result-note {
+            font-size: 0.72rem;
+            color: var(--rayleigh-color);
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed #99f6e4;
+            line-height: 1.4;
+        }
+        .note-tag {
+            display: inline-block;
+            background: #ccfbf1;
+            color: #0f766e;
+            border-radius: 4px;
+            padding: 0 4px;
+            font-weight: 600;
+        }
+        
+        .hidden { display: none !important; }
+        
+        /* 公式样式 */
+        .formula { margin-bottom: 15px; font-family: "Cambria Math", "Times New Roman", serif; font-size: 1.1rem; }
+        .formula-desc { font-size: 0.85rem; color: #94a3b8; font-family: sans-serif; margin-top: 4px; }
+        .frac { display: inline-block; vertical-align: middle; text-align: center; margin: 0 4px; }
+        .frac span { display: block; padding: 0 4px; }
+        .frac .top { border-bottom: 1px solid #e2e8f0; }
+        .formula-desc .hl { color: #5eead4; }
+    </style>
+</head>
+<body>
+
+<a class="site-back" href="{{ site.baseurl }}/">← 返回个人主页</a>
+
+<div class="container">
+    <!-- 左侧：计算区 -->
+    <div class="calc-panel">
+        <h2>激光参数输入</h2>
+        
+        <!-- 频率与脉宽 -->
+        <div class="input-group">
+            <label>基频 / 重频 (f)</label>
+            <input type="number" id="freq" value="125" step="any">
+            <select id="freqUnit">
+                <option value="1">Hz</option>
+                <option value="1e3" selected>KHz</option>
+                <option value="1e6">MHz</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>单脉冲宽度 (T)</label>
+            <input type="number" id="pulseWidth" value="480" step="any">
+            <select id="pulseWidthUnit">
+                <option value="1e-15">fs</option>
+                <option value="1e-12">ps</option>
+                <option value="1e-9" selected>ns</option>
+                <option value="1e-6">us</option>
+            </select>
+        </div>
+
+        <!-- Burst 模式 -->
+        <div class="burst-section">
+            <div class="burst-header">
+                <input type="checkbox" id="enableBurst" style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="enableBurst" style="cursor: pointer;">开启 Burst（脉冲串）模式</label>
+            </div>
+            <div class="burst-inputs" id="burstInputs">
+                <div class="input-group" style="grid-template-columns: 1fr 80px;">
+                    <label>串内个数 (N)</label>
+                    <input type="number" id="burstCount" value="1" min="1" step="1" style="grid-column: span 2;">
+                </div>
+                <div class="input-group" style="grid-template-columns: 1fr 80px;">
+                    <label>串内频率 (f<sub>intra</sub>)</label>
+                    <div style="display: flex; gap: 5px; grid-column: span 2;">
+                        <input type="number" id="intraFreq" value="20" step="any">
+                        <select id="intraFreqUnit">
+                            <option value="1e3">KHz</option>
+                            <option value="1e6" selected>MHz</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功率或能量切换 -->
+        <div class="radio-group">
+            <label><input type="radio" name="powerMode" value="power" checked onchange="togglePowerMode()"> 已知平均功率</label>
+            <label><input type="radio" name="powerMode" value="energy" onchange="togglePowerMode()"> 已知单脉冲能量</label>
+        </div>
+
+        <div class="input-group" id="groupPower">
+            <label>平均功率 (P<sub>avg</sub>)</label>
+            <input type="number" id="avgPower" value="250" step="any">
+            <select id="avgPowerUnit">
+                <option value="1" selected>W</option>
+                <option value="1e-3">mW</option>
+            </select>
+        </div>
+
+        <div class="input-group hidden" id="groupEnergy">
+            <label>单脉冲能量 (E)</label>
+            <input type="number" id="pulseEnergy" value="16" step="any">
+            <select id="pulseEnergyUnit">
+                <option value="1e-6" selected>uJ (μJ)</option>
+                <option value="1e-3">mJ</option>
+                <option value="1">J</option>
+            </select>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+
+        <!-- 光斑计算模式切换 -->
+        <div class="radio-group">
+            <label><input type="radio" name="beamMode" value="diameter" checked onchange="toggleBeamMode()"> 直接输入光斑直径</label>
+            <label><input type="radio" name="beamMode" value="na" onchange="toggleBeamMode()"> 通过 NA 和波长计算</label>
+        </div>
+
+        <!-- 波长（两种模式都需要，用于瑞利长度计算） -->
+        <div class="input-group" id="groupWavelength">
+            <label>激光波长 (λ)</label>
+            <input type="number" id="wavelength" value="1064" step="any">
+            <select id="wavelengthUnit">
+                <option value="1" selected>nm</option>
+                <option value="1000">um</option>
+            </select>
+        </div>
+
+        <div class="input-group" id="groupDiameter">
+            <label>光斑直径 (D)</label>
+            <input type="number" id="beamDiameter" value="50" step="any">
+            <select id="beamDiameterUnit">
+                <option value="1" selected>um</option>
+                <option value="1000">mm</option>
+            </select>
+        </div>
+
+        <div class="hidden" id="groupNA">
+            <div class="input-group">
+                <label>数值孔径 (NA)</label>
+                <input type="number" id="naValue" value="0.1" step="any">
+                <select disabled><option>无单位</option></select>
+            </div>
+        </div>
+
+        <h2 style="margin-top: 30px;">计算结果</h2>
+        <div class="results">
+            <div class="result-card">
+                <div class="result-label">单脉冲能量 (E)</div>
+                <div class="result-value" id="outEnergy">-</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">串内脉冲间隔 (ΔT<sub>intra</sub>)</div>
+                <div class="result-value" id="outIntraPeriod">-</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">峰值功率 (P<sub>peak</sub>)</div>
+                <div class="result-value" id="outPeakPower">-</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">平均功率密度 (I<sub>avg</sub>)</div>
+                <div class="result-value" id="outAvgIntensity">-</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">峰值功率密度 (I<sub>peak</sub>)</div>
+                <div class="result-value" id="outPeakIntensity">-</div>
+            </div>
+            <div class="result-card">
+                <div class="result-label">单脉冲能量密度 (F)</div>
+                <div class="result-value" id="outFluence">-</div>
+            </div>
+            <div class="result-card rayleigh-card">
+                <div class="result-label">瑞利长度 (z<sub>R</sub>)</div>
+                <div class="result-value" id="outRayleigh">-</div>
+                <div class="result-note">
+                    工艺参考：玻璃-玻璃取界面下 <span class="note-tag">6–60 倍</span>；玻璃-金属取界面下 <span class="note-tag">0–2 倍</span>
+                </div>
+            </div>
+            <div class="result-card" style="grid-column: span 2;">
+                <div class="result-label">光斑面积 (A)</div>
+                <div class="result-value" id="outArea">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧：公式区 -->
+    <div class="formula-panel">
+        <h2 style="border-color: #334155;">计算公式说明</h2>
+        
+        <h3>1. 能量计算 (含 Burst)</h3>
+        <div class="formula">
+            <i>E</i><sub>pulse</sub> = <div class="frac"><span class="top"><i>P</i><sub>avg</sub></span><span><i>f</i> × <i>N</i></span></div>
+        </div>
+        <div class="formula-desc">N为Burst串内个数。如果不开启Burst，则 N=1。若已知单脉冲能量，反过来推平均功率：P = E × f × N。</div>
+
+        <h3>2. Burst 串内间隔</h3>
+        <div class="formula">
+            <i>ΔT</i><sub>intra</sub> = <div class="frac"><span class="top">1</span><span><i>f</i><sub>intra</sub></span></div>
+        </div>
+        <div class="formula-desc">f_intra 为串内频率。例如20MHz对应间隔50ns。</div>
+
+        <h3>3. 峰值功率</h3>
+        <div class="formula">
+            <i>P</i><sub>peak</sub> = 2 &radic;<div class="frac"><span class="top">ln 2</span><span>π</span></div> × <div class="frac"><span class="top"><i>E</i><sub>pulse</sub></span><span><i>T</i></span></div>
+        </div>
+        <div class="formula-desc">系数 ≈ 0.9394 针对高斯脉冲。此处使用的 E_pulse 是<strong>拆分后</strong>的单个脉冲能量。</div>
+
+        <h3>4. 光斑面积</h3>
+        <div class="formula">
+            <i>A</i> = π × (<div class="frac"><span class="top"><i>D</i></span><span>2</span></div>)<sup>2</sup>
+        </div>
+        <div class="formula-desc">当通过NA推导时，采用衍射极限公式：<br><i>D</i> ≈ <div class="frac"><span class="top">4<i>λ</i></span><span>π · NA</span></div></div>
+
+        <h3>5. 密度与通量</h3>
+        <div class="formula"><i>I</i><sub>avg</sub> = <div class="frac"><span class="top"><i>P</i><sub>avg</sub></span><span><i>A</i></span></div></div>
+        <div class="formula"><i>I</i><sub>peak</sub> = <div class="frac"><span class="top"><i>P</i><sub>peak</sub></span><span><i>A</i></span></div></div>
+        <div class="formula"><i>F</i> = <div class="frac"><span class="top"><i>E</i><sub>pulse</sub></span><span><i>A</i></span></div></div>
+        <div class="formula-desc">能量密度 F 单位统一规范为 J/cm²，功率密度 I 统一为 W/cm² 和 GW/cm² 显示。</div>
+
+        <h3>6. 瑞利长度</h3>
+        <div class="formula">
+            <i>z</i><sub>R</sub> = <div class="frac"><span class="top">π <i>w</i><sub>0</sub><sup>2</sup></span><span><i>λ</i></span></div>
+            = <div class="frac"><span class="top">π <i>D</i><sup>2</sup></span><span>4<i>λ</i></span></div>
+        </div>
+        <div class="formula-desc">
+            <i>w</i><sub>0</sub> = D/2 为束腰半径，<i>λ</i> 为激光波长。<br>
+            瑞利长度表示光束横截面面积加倍（发散到 √2 倍）所需的传播距离，是判断焦深与加工有效作用深度的关键参数。<br>
+            <span class="hl">工艺参考：玻璃-玻璃取界面下 6–60 倍；玻璃-金属取界面下 0–2 倍。</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 监听所有输入变化
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('input', calculate);
+        el.addEventListener('change', calculate);
+    });
+
+    // 监听 Burst 开关
+    document.getElementById('enableBurst').addEventListener('change', (e) => {
+        const inputs = document.getElementById('burstInputs');
+        if (e.target.checked) {
+            inputs.classList.add('active');
+        } else {
+            inputs.classList.remove('active');
+        }
+        calculate();
+    });
+
+    function togglePowerMode() {
+        const mode = document.querySelector('input[name="powerMode"]:checked').value;
+        if (mode === 'power') {
+            document.getElementById('groupPower').classList.remove('hidden');
+            document.getElementById('groupEnergy').classList.add('hidden');
+        } else {
+            document.getElementById('groupPower').classList.add('hidden');
+            document.getElementById('groupEnergy').classList.remove('hidden');
+        }
+        calculate();
+    }
+
+    function toggleBeamMode() {
+        const mode = document.querySelector('input[name="beamMode"]:checked').value;
+        if (mode === 'diameter') {
+            document.getElementById('groupDiameter').classList.remove('hidden');
+            document.getElementById('groupNA').classList.add('hidden');
+        } else {
+            document.getElementById('groupDiameter').classList.add('hidden');
+            document.getElementById('groupNA').classList.remove('hidden');
+        }
+        calculate();
+    }
+
+    function formatNumber(num) {
+        if (num === 0) return "0";
+        // 对极大或极小的数字使用科学计数法
+        if (Math.abs(num) >= 1e5 || (Math.abs(num) < 1e-3 && num !== 0)) {
+            return num.toExponential(2);
+        }
+        return num.toFixed(3).replace(/\.?0+$/, ""); 
+    }
+
+    function calculate() {
+        // 1. 读取基础参数
+        const f_val = parseFloat(document.getElementById('freq').value) || 0;
+        const f_unit = parseFloat(document.getElementById('freqUnit').value);
+        const f = f_val * f_unit; // 基频 Hz
+
+        const T_val = parseFloat(document.getElementById('pulseWidth').value) || 0;
+        const T_unit = parseFloat(document.getElementById('pulseWidthUnit').value);
+        const T = T_val * T_unit; // 脉宽 s
+
+        // 2. 读取 Burst 参数
+        const isBurst = document.getElementById('enableBurst').checked;
+        let burstCount = 1;
+        let intraFreq = 0;
+        let intraPeriod = 0;
+
+        if (isBurst) {
+            burstCount = parseFloat(document.getElementById('burstCount').value) || 1;
+            const intraF_val = parseFloat(document.getElementById('intraFreq').value) || 0;
+            const intraF_unit = parseFloat(document.getElementById('intraFreqUnit').value);
+            intraFreq = intraF_val * intraF_unit;
+            if (intraFreq > 0) {
+                intraPeriod = 1 / intraFreq;
+            }
+        }
+
+        // 3. 计算能量和功率
+        const powerMode = document.querySelector('input[name="powerMode"]:checked').value;
+        let P_avg = 0; // W
+        let E_pulse = 0; // J (单脉冲能量)
+
+        if (powerMode === 'power') {
+            const P_val = parseFloat(document.getElementById('avgPower').value) || 0;
+            const P_unit = parseFloat(document.getElementById('avgPowerUnit').value);
+            P_avg = P_val * P_unit;
+            // 能量 = 平均功率 / (重频 * 串内个数)
+            if (f > 0 && burstCount > 0) {
+                E_pulse = P_avg / (f * burstCount);
+            }
+        } else {
+            const E_val = parseFloat(document.getElementById('pulseEnergy').value) || 0;
+            const E_unit = parseFloat(document.getElementById('pulseEnergyUnit').value);
+            E_pulse = E_val * E_unit;
+            // 功率 = 单脉冲能量 * 重频 * 串内个数
+            P_avg = E_pulse * f * burstCount;
+        }
+
+        // 4. 读取波长（单位换算为 m）
+        const lambda_val = parseFloat(document.getElementById('wavelength').value) || 0;
+        const lambda_unit = parseFloat(document.getElementById('wavelengthUnit').value);
+        const lambda = lambda_val * lambda_unit * 1e-9;
+
+        // 5. 光斑尺寸计算
+        let D_m = 0; 
+        let area_m2 = 0;
+        const beamMode = document.querySelector('input[name="beamMode"]:checked').value;
+
+        if (beamMode === 'diameter') {
+            const D_val = parseFloat(document.getElementById('beamDiameter').value) || 0;
+            const D_unit = parseFloat(document.getElementById('beamDiameterUnit').value);
+            D_m = (D_val * D_unit) * 1e-6; 
+        } else {
+            const NA = parseFloat(document.getElementById('naValue').value) || 0.0001;
+            
+            if (NA > 0 && lambda > 0) {
+                D_m = (4 * lambda) / (Math.PI * NA);
+            }
+        }
+
+        if (D_m > 0) {
+            area_m2 = Math.PI * Math.pow(D_m / 2, 2);
+        }
+
+        // 6. 衍生参数
+        // 峰值功率（基于单脉冲能量）
+        const peakPower = (T > 0) ? (0.9394 * E_pulse / T) : 0;
+
+        // 面积转为 cm² (1 m² = 10000 cm²)
+        const area_cm2 = area_m2 * 10000; 
+        
+        const avgIntensity = (area_cm2 > 0) ? (P_avg / area_cm2) : 0; // W/cm²
+        const peakIntensity = (area_cm2 > 0) ? (peakPower / area_cm2) : 0; // W/cm²
+        const fluence = (area_cm2 > 0) ? (E_pulse / area_cm2) : 0; // J/cm²
+
+        // 瑞利长度 z_R = π·w0²/λ = π·D²/(4λ)  单位 m
+        let rayleigh = 0;
+        if (D_m > 0 && lambda > 0) {
+            const w0 = D_m / 2;
+            rayleigh = (Math.PI * w0 * w0) / lambda;
+        }
+
+        // 7. DOM 渲染
+        // 单脉冲能量 -> 固定为 μJ
+        document.getElementById('outEnergy').innerHTML = E_pulse > 0 ? 
+            `${formatNumber(E_pulse * 1e6)} <span>μJ</span>` : '-';
+
+        // 串内间隔
+        if (isBurst && intraPeriod > 0) {
+            // 自适应 ns / us
+            if (intraPeriod >= 1e-6) {
+                document.getElementById('outIntraPeriod').innerHTML = `${formatNumber(intraPeriod * 1e6)} <span>μs</span>`;
+            } else {
+                document.getElementById('outIntraPeriod').innerHTML = `${formatNumber(intraPeriod * 1e9)} <span>ns</span>`;
+            }
+        } else {
+            document.getElementById('outIntraPeriod').innerHTML = `<span style="color:var(--text-light)">未开启</span>`;
+        }
+
+        // 峰值功率
+        let peakPowerStr = '-';
+        if (peakPower > 0) {
+            if (peakPower >= 1e6) peakPowerStr = `${formatNumber(peakPower / 1e6)} <span>MW</span>`;
+            else if (peakPower >= 1e3) peakPowerStr = `${formatNumber(peakPower / 1e3)} <span>kW</span>`;
+            else peakPowerStr = `${formatNumber(peakPower)} <span>W</span>`;
+        }
+        document.getElementById('outPeakPower').innerHTML = peakPowerStr;
+
+        // 平均功率密度
+        document.getElementById('outAvgIntensity').innerHTML = avgIntensity > 0 ? 
+            `${formatNumber(avgIntensity)} <span>W/cm²</span>` : '-';
+        
+        // 峰值功率密度
+        document.getElementById('outPeakIntensity').innerHTML = peakIntensity > 0 ? 
+            `${formatNumber(peakIntensity / 1e9)} <span>GW/cm²</span>` : '-';
+
+        // 能量密度 -> 固定为 J/cm²
+        document.getElementById('outFluence').innerHTML = fluence > 0 ? 
+            `${formatNumber(fluence)} <span>J/cm²</span>` : '-';
+
+        // 瑞利长度（自适应 μm / mm / m）
+        let rayleighStr = '-';
+        if (rayleigh > 0) {
+            if (rayleigh >= 1) {
+                rayleighStr = `${formatNumber(rayleigh)} <span>m</span>`;
+            } else if (rayleigh >= 1e-3) {
+                rayleighStr = `${formatNumber(rayleigh * 1e3)} <span>mm</span>`;
+            } else if (rayleigh >= 1e-6) {
+                rayleighStr = `${formatNumber(rayleigh * 1e6)} <span>μm</span>`;
+            } else {
+                rayleighStr = `${formatNumber(rayleigh * 1e9)} <span>nm</span>`;
+            }
+        }
+        document.getElementById('outRayleigh').innerHTML = rayleighStr;
+
+        // 面积
+        document.getElementById('outArea').innerHTML = area_m2 > 0 ? 
+            `${formatNumber(area_m2 * 1e12)} <span>μm²</span> <span style="margin-left:10px">| 光斑 D = ${formatNumber(D_m * 1e6)} μm</span>` : '-';
+    }
+
+    // 初始化
+    calculate();
+</script>
+</body>
+</html>

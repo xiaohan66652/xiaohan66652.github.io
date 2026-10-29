@@ -1,0 +1,108 @@
+---
+layout: page
+title: "Xiaohan."
+description: "学习，记录，把想法一点点做成作品。"
+header-img: "img/home-bg-o.jpg"
+header-mask: 0.42
+home: true
+hide-in-nav: true
+no-catalog: true
+---
+
+<main class="home-content">
+    <section class="home-lead">
+        <div class="home-portrait">
+            <img src="{{ site.baseurl }}{{ site.sidebar-avatar }}" alt="Xiaohan 的头像">
+            <span class="home-status">Welcome</span>
+        </div>
+        <div class="home-lead-copy">
+            <p class="home-kicker">A SMALL PLACE ON THE INTERNET</p>
+            <h2>把好奇心，慢慢变成作品。</h2>
+            <p>你好，我是 Xiaohan。这里是我的个人主页，用来记录学习过程中的收获、做过的小项目，以及偶尔冒出来的想法。</p>
+            <div class="home-actions">
+                <a class="button button-primary" href="#projects">看看项目</a>
+                <a class="button button-ghost" href="{{ site.baseurl }}/about/">认识我</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-section" id="focus">
+        <div class="section-heading-row">
+            <p class="home-kicker">WHAT I AM EXPLORING</p>
+            <h2>保持输入，也坚持输出。</h2>
+        </div>
+        <div class="focus-grid">
+            <article class="focus-card">
+                <span>01</span>
+                <h3>持续学习</h3>
+                <p>从编程基础到机器学习，按自己的节奏积累，也把复杂问题拆成一小步一小步。</p>
+            </article>
+            <article class="focus-card">
+                <span>02</span>
+                <h3>动手实践</h3>
+                <p>用项目连接零散的知识，在真实的尝试中理解原理，再把它变成看得见的成果。</p>
+            </article>
+            <article class="focus-card">
+                <span>03</span>
+                <h3>记录分享</h3>
+                <p>把踩过的坑和解决过程整理下来，希望这些文字对未来的自己、也路过这里的你有用。</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="home-section" id="projects">
+        <div class="section-heading-row">
+            <p class="home-kicker">SELECTED WORK</p>
+            <h2>正在生长的项目</h2>
+        </div>
+        <a class="project-card tool-card" href="{{ site.baseurl }}/laser-calculator/">
+            <div>
+                <span class="project-label">INTERACTIVE TOOL</span>
+                <h3>激光参数计算器</h3>
+                <p>支持 Burst、峰值功率、功率密度和瑞利长度计算。</p>
+            </div>
+            <span class="project-arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="project-card" href="https://github.com/xiaohan66652/TransferLearning" target="_blank" rel="noopener">
+            <div>
+                <span class="project-label">LEARNING PROJECT</span>
+                <h3>TransferLearning</h3>
+                <p>机器学习与迁移学习相关的实践与代码整理。</p>
+            </div>
+            <span class="project-arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="all-projects-link" href="https://github.com/xiaohan66652?tab=repositories" target="_blank" rel="noopener">
+            在 GitHub 查看全部项目 <span aria-hidden="true">→</span>
+        </a>
+    </section>
+
+    {% if site.posts.size > 0 %}
+    {% assign latest_post = site.posts.first %}
+    <section class="home-section" id="journal">
+        <div class="section-heading-row">
+            <p class="home-kicker">LATEST NOTE</p>
+            <h2>最近写下的文字</h2>
+        </div>
+        <a class="note-card" href="{{ latest_post.url | prepend: site.baseurl }}">
+            <p class="note-date">{{ latest_post.date | date: "%Y.%m.%d" }}</p>
+            <h3>{{ latest_post.title }}</h3>
+            {% if latest_post.subtitle %}
+            <p>{{ latest_post.subtitle }}</p>
+            {% else %}
+            <p>{{ latest_post.excerpt | strip_html | truncate: 100 }}</p>
+            {% endif %}
+            <span class="note-more">阅读全文 <span aria-hidden="true">→</span></span>
+        </a>
+    </section>
+    {% endif %}
+
+    <section class="home-contact">
+        <p class="home-kicker">LET'S CONNECT</p>
+        <h2>有想法，欢迎来找我聊聊。</h2>
+        <p>这个网站还在慢慢长大，我会持续补上新的项目和文章。</p>
+        <div class="home-actions">
+            <a class="button button-primary" href="https://github.com/xiaohan66652" target="_blank" rel="noopener">GitHub</a>
+            <a class="button button-ghost" href="mailto:{{ site.email }}">Email</a>
+        </div>
+    </section>
+</main>

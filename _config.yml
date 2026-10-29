@@ -1,3 +1,93 @@
-theme: jekyll-theme-minimal
-title: 我的个人主页
-description: 用Jekyll搭建的第一个站点
+# Site settings
+title: Xiaohan
+SEOTitle: Xiaohan | 学习、项目与思考
+header-img: img/home-bg-o.jpg
+email: xiaohan66652@hotmail.com
+description: "Xiaohan 的个人主页，记录学习、项目与思考。"
+keyword: "Xiaohan, 个人主页, 个人网站, 学习笔记, 项目记录"
+url: "https://xiaohan66652.github.io"
+baseurl: "/xiaohan-66652.github.io"
+
+
+# Publish posts or collection documents with a future date.
+future: true
+
+
+# SNS settings
+RSS: true
+github_username: xiaohan66652
+
+
+
+# Build settings
+# from 2016, 'pygments' is unsupported on GitHub Pages. Use 'rouge' for highlighting instead.
+highlighter: rouge
+permalink: pretty
+paginate: 10
+exclude:
+  [
+    "_doc",
+    "less",
+    "node_modules",
+    "Gruntfile.js",
+    "package.json",
+    "package-lock.json",
+    "README.md",
+    "README.zh.md",
+    ".impeccable.md",
+    "LICENSE",
+  ]
+anchorjs: true # if you want to customize anchor. check out line:181 of `post.html`
+# If you have timezone issue (e.g. #68) in China, uncomment to use this:
+#timezone: CN
+
+
+# Gems
+# from PR#40, to support local preview for Jekyll 3.0
+# make sure you have this gem installed
+# `$ gem install jekyll-paginate`
+plugins: [jekyll-paginate]
+
+
+# Markdown settings
+# replace redcarpet to kramdown,
+# although redcarpet can auto highlight code, the lack of header-id make the catalog impossible, so I switch to kramdown
+# document: http://jekyllrb.com/docs/configuration/#kramdown
+markdown: kramdown
+kramdown:
+  input: GFM # use Github Flavored Markdown !important
+  syntax_highlighter_opts:
+    span:
+      line_numbers: false
+    block:
+      line_numbers: true
+      start_line: 1
+
+
+# Disqus settings
+disqus_username:
+
+
+# Netease settings
+netease_comment: false
+
+
+# Analytics settings
+# Baidu Analytics
+# ba_track_id: [your track id]
+
+
+# Google Analytics
+ga_track_id:
+ga_domain:
+
+
+# Sidebar settings
+sidebar: false # whether or not using Sidebar.
+sidebar-about-description: "保持好奇，持续学习，把想法一点点做成作品。"
+sidebar-avatar: /img/avatar-xiaohan.png
+
+# Home page and browser appearance
+chrome-tab-theme-color: "#0f766e"
+featured-condition-size: 0
+service-worker: false

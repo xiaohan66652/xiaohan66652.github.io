@@ -1,0 +1,21 @@
+---
+layout: page
+title: "关于"
+description: "一个正在学习、记录和创造的人。"
+header-img: "img/bg-material.jpg"
+header-mask: 0.38
+multilingual: true
+personal-page: true
+---
+
+{% include multilingual-sel.html %}
+
+<div class="zh post-container about-container">
+    {% capture about_zh %}{% include about/zh.md %}{% endcapture %}
+    {{ about_zh | markdownify }}
+</div>
+
+<div class="en post-container about-container">
+    {% capture about_en %}{% include about/en.md %}{% endcapture %}
+    {{ about_en | markdownify }}
+</div>

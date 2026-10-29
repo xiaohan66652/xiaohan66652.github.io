@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+{% include head.html %}
+
+<!-- hack iOS CSS :active style -->
+<body class="{% if page.home %}home-page{% endif %} {% if page.personal-page %}personal-page{% endif %}" ontouchstart="">
+
+    {% include nav.html %}
+    {% include search.html %}
+
+    {{ content }}
+
+    {% include footer.html %}
+
+
+<!-- Image to hack wechat -->
+<img src="{{ "/img/icon_wechat.png" | prepend: site.baseurl }}" width="0" height="0" alt="" />
+<!-- Migrate from head to bottom, no longer block render and still work -->
+
+</body>
+
+</html>
