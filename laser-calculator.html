@@ -100,6 +100,21 @@ permalink: /laser-calculator/
         .frac span { display: block; padding: 0 4px; }
         .frac .top { border-bottom: 1px solid #e2e8f0; }
         .formula-desc .hl { color: #5eead4; }
+
+        @media (max-width: 640px) {
+            body { padding: 12px; }
+            .container { gap: 14px; }
+            .calc-panel, .formula-panel { padding: 18px; border-radius: 10px; }
+            .results { grid-template-columns: 1fr; }
+            .results > .result-card { grid-column: auto !important; }
+            .burst-inputs { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 480px) {
+            .input-group { grid-template-columns: minmax(0, 1fr) 82px; gap: 7px; }
+            .input-group > label { grid-column: 1 / -1; }
+            .site-back { margin-bottom: 10px; }
+        }
     </style>
 </head>
 <body>
