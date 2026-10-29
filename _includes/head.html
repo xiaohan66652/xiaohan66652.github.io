@@ -38,7 +38,13 @@
     <link rel="manifest" href="{{ site.baseurl }}/pwa/manifest.json">
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{ site.baseurl }}/img/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32"
+        href="{{ site.baseurl }}/img/favicon-32x32.png?v=dandelion">
+    <link rel="icon" type="image/png" sizes="16x16"
+        href="{{ site.baseurl }}/img/favicon-16x16.png?v=dandelion">
+    <link rel="shortcut icon" href="{{ site.baseurl }}/img/favicon.ico?v=dandelion">
+    <link rel="apple-touch-icon" sizes="180x180"
+        href="{{ site.baseurl }}/img/apple-touch-icon.png?v=dandelion">
 
     <!-- Canonical URL -->
     <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
