@@ -173,6 +173,8 @@
     border-color: #b8c5c0;
     background: transparent;
     color: var(--ink) !important;
+    cursor: pointer;
+    font: inherit;
 }
 
 .button-ghost:hover,
@@ -430,6 +432,15 @@
 
 .home-contact .home-actions {
     justify-content: center;
+}
+
+.copy-status {
+    flex-basis: 100%;
+    min-height: 1.5em;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
 }
 
 .personal-page .postlist-container {

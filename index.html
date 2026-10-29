@@ -94,7 +94,43 @@ no-catalog: true
         <p>这个网站还在慢慢长大，我会持续补上新的项目和文章。</p>
         <div class="home-actions">
             <a class="button button-primary" href="https://github.com/xiaohan66652" target="_blank" rel="noopener">GitHub</a>
-            <a class="button button-ghost" href="mailto:{{ site.email }}">Email</a>
+            <button type="button" class="button button-ghost copy-email" data-email="{{ site.email }}">复制邮箱</button>
+            <span class="copy-status" role="status" aria-live="polite"></span>
         </div>
     </section>
 </main>
+
+<script>
+    (function () {
+        var button = document.querySelector('.copy-email');
+        var status = document.querySelector('.copy-status');
+        if (!button || !status) return;
+
+        button.addEventListener('click', async function () {
+            var email = button.getAttribute('data-email');
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(email);
+                } else {
+                    var textarea = document.createElement('textarea');
+                    textarea.value = email;
+                    textarea.setAttribute('readonly', '');
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    textarea.remove();
+                }
+
+                button.textContent = '已复制';
+                status.textContent = email + ' 已复制到剪贴板';
+                window.setTimeout(function () {
+                    button.textContent = '复制邮箱';
+                }, 1800);
+            } catch (error) {
+                status.textContent = '复制失败，请手动复制：' + email;
+            }
+        });
+    })();
+</script>
