@@ -2,7 +2,7 @@
 
 这是 Xiaohan 的个人主页，使用 Jekyll 构建并部署在 GitHub Pages。
 
-- 线上地址：<https://xiaohan66652.github.io/xiaohan-66652.github.io/>
+- 线上地址：<https://xiaohan66652.github.io/>
 - GitHub：<https://github.com/xiaohan66652>
 - 主题来源：[Hux Blog](https://github.com/Huxpro/huxpro.github.io)
 
@@ -27,14 +27,14 @@ email: xiaohan66652@hotmail.com
 github_username: xiaohan66652
 ```
 
-当前仓库不是 `xiaohan66652.github.io` 这个用户根仓库，而是名为 `xiaohan-66652.github.io` 的项目仓库，因此以下配置必须保持：
+当前仓库是 `xiaohan66652.github.io` 用户根仓库，因此网站直接位于域名根目录，以下配置必须保持：
 
 ```yml
 url: "https://xiaohan66652.github.io"
-baseurl: "/xiaohan-66652.github.io"
+baseurl: ""
 ```
 
-如果以后把仓库改名为 `xiaohan66652.github.io`，线上地址会变成 `https://xiaohan66652.github.io/`，那时需要把 `baseurl` 改成空字符串。
+如果以后把仓库改成普通项目名，例如 `my-project`，线上地址会变成 `https://xiaohan66652.github.io/my-project/`，那时需要把 `baseurl` 改成 `"/my-project"`。
 
 ## 添加文章
 
@@ -111,7 +111,7 @@ bundle install
 bundle exec jekyll serve
 ```
 
-浏览器打开 <http://127.0.0.1:4000/xiaohan-66652.github.io/>。
+浏览器打开 <http://127.0.0.1:4000/>。
 
 ## 发布
 

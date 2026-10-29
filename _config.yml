@@ -6,7 +6,7 @@ email: xiaohan66652@hotmail.com
 description: "Xiaohan 的个人主页，记录学习、项目与思考。"
 keyword: "Xiaohan, 个人主页, 个人网站, 学习笔记, 项目记录"
 url: "https://xiaohan66652.github.io"
-baseurl: "/xiaohan-66652.github.io"
+baseurl: ""
 
 
 # Publish posts or collection documents with a future date.
