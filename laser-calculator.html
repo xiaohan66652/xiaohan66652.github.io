@@ -8,7 +8,7 @@ permalink: /laser-calculator/
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>超快激光参数计算器 (Burst版)</title>
-    <meta name="description" content="Xiaohan 编写的超快激光参数计算器，支持 Burst、峰值功率、功率密度和瑞利长度计算。">
+    <meta name="description" content="Xiaohan 编写的超快激光参数计算器，支持 Burst、能量密度、高斯光束束腰和瑞利长度计算。">
     <link rel="shortcut icon" href="{{ site.baseurl }}/img/favicon.ico">
     <style>
         :root {
@@ -74,6 +74,8 @@ permalink: /laser-calculator/
         /* 瑞利长度卡片 */
         .result-card.rayleigh-card { border-color: #99f6e4; background: #f0fdfa; }
         .result-card.rayleigh-card .result-value { color: var(--rayleigh-color); }
+        .result-card.peak-fluence-card { border-color: #fecaca; background: #fff7ed; }
+        .result-card.peak-fluence-card .result-value { color: #c2410c; }
         .result-note {
             font-size: 0.72rem;
             color: var(--rayleigh-color);
@@ -89,6 +91,40 @@ permalink: /laser-calculator/
             border-radius: 4px;
             padding: 0 4px;
             font-weight: 600;
+        }
+
+        .model-note,
+        .na-note,
+        .field-note {
+            border-radius: 8px;
+            font-size: 0.78rem;
+            line-height: 1.55;
+        }
+
+        .model-note {
+            margin: 18px 0 0;
+            padding: 11px 13px;
+            border: 1px solid #bfdbfe;
+            background: #eff6ff;
+            color: #1e40af;
+        }
+
+        .model-note strong {
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .na-note {
+            margin-top: -2px;
+            padding: 10px 12px;
+            border-left: 3px solid #f59e0b;
+            background: #fffbeb;
+            color: #92400e;
+        }
+
+        .field-note {
+            margin: -5px 0 16px;
+            color: var(--text-light);
         }
         
         .hidden { display: none !important; }
@@ -129,7 +165,7 @@ permalink: /laser-calculator/
         <!-- 频率与脉宽 -->
         <div class="input-group">
             <label>基频 / 重频 (f)</label>
-            <input type="number" id="freq" value="125" step="any">
+            <input type="number" id="freq" value="100" step="any">
             <select id="freqUnit">
                 <option value="1">Hz</option>
                 <option value="1e3" selected>KHz</option>
@@ -138,14 +174,15 @@ permalink: /laser-calculator/
         </div>
         <div class="input-group">
             <label>单脉冲宽度 (T)</label>
-            <input type="number" id="pulseWidth" value="480" step="any">
+            <input type="number" id="pulseWidth" value="290" step="any">
             <select id="pulseWidthUnit">
-                <option value="1e-15">fs</option>
+                <option value="1e-15" selected>fs</option>
                 <option value="1e-12">ps</option>
-                <option value="1e-9" selected>ns</option>
+                <option value="1e-9">ns</option>
                 <option value="1e-6">us</option>
             </select>
         </div>
+        <p class="field-note">脉宽目前只作为实验条件记录，不参与本页的能量密度与瑞利长度计算。</p>
 
         <!-- Burst 模式 -->
         <div class="burst-section">
@@ -179,7 +216,7 @@ permalink: /laser-calculator/
 
         <div class="input-group" id="groupPower">
             <label>平均功率 (P<sub>avg</sub>)</label>
-            <input type="number" id="avgPower" value="250" step="any">
+            <input type="number" id="avgPower" value="3" step="any">
             <select id="avgPowerUnit">
                 <option value="1" selected>W</option>
                 <option value="1e-3">mW</option>
@@ -207,7 +244,7 @@ permalink: /laser-calculator/
         <!-- 波长（两种模式都需要，用于瑞利长度计算） -->
         <div class="input-group" id="groupWavelength">
             <label>激光波长 (λ)</label>
-            <input type="number" id="wavelength" value="1064" step="any">
+            <input type="number" id="wavelength" value="1030" step="any">
             <select id="wavelengthUnit">
                 <option value="1" selected>nm</option>
                 <option value="1000">um</option>
@@ -215,8 +252,8 @@ permalink: /laser-calculator/
         </div>
 
         <div class="input-group" id="groupDiameter">
-            <label>光斑直径 (D)</label>
-            <input type="number" id="beamDiameter" value="50" step="any">
+            <label>束腰直径 (D, 1/e²)</label>
+            <input type="number" id="beamDiameter" value="10" step="any">
             <select id="beamDiameterUnit">
                 <option value="1" selected>um</option>
                 <option value="1000">mm</option>
@@ -229,6 +266,14 @@ permalink: /laser-calculator/
                 <input type="number" id="naValue" value="0.1" step="any">
                 <select disabled><option>无单位</option></select>
             </div>
+            <p class="na-note">
+                通过 NA 计算的束腰半径仅为理想高斯光束近似值，不一定代表实际焦点。实际束腰取决于激光器输出、输入光束直径、物镜设计和装调状态，请以实测结果为准。
+            </p>
+        </div>
+
+        <div class="model-note">
+            <strong>计算模型：高斯光束</strong>
+            以下能量密度与光束尺寸结果均按理想高斯光束近似计算。
         </div>
 
         <h2 style="margin-top: 30px;">计算结果</h2>
@@ -242,20 +287,12 @@ permalink: /laser-calculator/
                 <div class="result-value" id="outIntraPeriod">-</div>
             </div>
             <div class="result-card">
-                <div class="result-label">峰值功率 (P<sub>peak</sub>)</div>
-                <div class="result-value" id="outPeakPower">-</div>
+                <div class="result-label">平均能量密度 (F<sub>avg</sub>)</div>
+                <div class="result-value" id="outFluenceAvg">-</div>
             </div>
-            <div class="result-card">
-                <div class="result-label">平均功率密度 (I<sub>avg</sub>)</div>
-                <div class="result-value" id="outAvgIntensity">-</div>
-            </div>
-            <div class="result-card">
-                <div class="result-label">峰值功率密度 (I<sub>peak</sub>)</div>
-                <div class="result-value" id="outPeakIntensity">-</div>
-            </div>
-            <div class="result-card">
-                <div class="result-label">单脉冲能量密度 (F)</div>
-                <div class="result-value" id="outFluence">-</div>
+            <div class="result-card peak-fluence-card">
+                <div class="result-label">峰值能量密度 (F<sub>peak</sub> = 2F<sub>avg</sub>)</div>
+                <div class="result-value" id="outFluencePeak">-</div>
             </div>
             <div class="result-card rayleigh-card">
                 <div class="result-label">瑞利长度 (z<sub>R</sub>)</div>
@@ -287,25 +324,34 @@ permalink: /laser-calculator/
         </div>
         <div class="formula-desc">f_intra 为串内频率。例如20MHz对应间隔50ns。</div>
 
-        <h3>3. 峰值功率</h3>
+        <h3>3. 高斯光束束腰与面积</h3>
         <div class="formula">
-            <i>P</i><sub>peak</sub> = 2 &radic;<div class="frac"><span class="top">ln 2</span><span>π</span></div> × <div class="frac"><span class="top"><i>E</i><sub>pulse</sub></span><span><i>T</i></span></div>
+            <i>w</i><sub>0</sub> = <div class="frac"><span class="top"><i>D</i></span><span>2</span></div>
         </div>
-        <div class="formula-desc">系数 ≈ 0.9394 针对高斯脉冲。此处使用的 E_pulse 是<strong>拆分后</strong>的单个脉冲能量。</div>
-
-        <h3>4. 光斑面积</h3>
+        <div class="formula-desc">D 为高斯光束的 1/e² 束腰直径，w₀ 为束腰半径。</div>
         <div class="formula">
             <i>A</i> = π × (<div class="frac"><span class="top"><i>D</i></span><span>2</span></div>)<sup>2</sup>
+            = π<i>w</i><sub>0</sub><sup>2</sup>
         </div>
-        <div class="formula-desc">当通过NA推导时，采用衍射极限公式：<br><i>D</i> ≈ <div class="frac"><span class="top">4<i>λ</i></span><span>π · NA</span></div></div>
+        <div class="formula-desc">当通过 NA 推导时，采用理想高斯光束衍射近似：<br>
+            <i>w</i><sub>0</sub> ≈ <div class="frac"><span class="top"><i>λ</i></span><span>π · NA</span></div>，
+            <i>D</i> ≈ <div class="frac"><span class="top">2<i>λ</i></span><span>π · NA</span></div><br>
+            实际束腰受激光器与物镜设置影响，该结果只作为估算。
+        </div>
 
-        <h3>5. 密度与通量</h3>
-        <div class="formula"><i>I</i><sub>avg</sub> = <div class="frac"><span class="top"><i>P</i><sub>avg</sub></span><span><i>A</i></span></div></div>
-        <div class="formula"><i>I</i><sub>peak</sub> = <div class="frac"><span class="top"><i>P</i><sub>peak</sub></span><span><i>A</i></span></div></div>
-        <div class="formula"><i>F</i> = <div class="frac"><span class="top"><i>E</i><sub>pulse</sub></span><span><i>A</i></span></div></div>
-        <div class="formula-desc">能量密度 F 单位统一规范为 J/cm²，功率密度 I 统一为 W/cm² 和 GW/cm² 显示。</div>
+        <h3>4. 高斯光束能量密度</h3>
+        <div class="formula">
+            <i>F</i><sub>avg</sub> = <div class="frac"><span class="top"><i>E</i><sub>pulse</sub></span><span><i>A</i></span></div>
+        </div>
+        <div class="formula">
+            <i>F</i><sub>peak</sub> = 2<i>F</i><sub>avg</sub>
+            = 2 <div class="frac"><span class="top"><i>E</i><sub>pulse</sub></span><span><i>A</i></span></div>
+        </div>
+        <div class="formula-desc">
+            对于理想高斯空间分布，峰值能量密度是 1/e² 光斑面积平均能量密度的 2 倍。两者单位均为 J/cm²。
+        </div>
 
-        <h3>6. 瑞利长度</h3>
+        <h3>5. 瑞利长度</h3>
         <div class="formula">
             <i>z</i><sub>R</sub> = <div class="frac"><span class="top">π <i>w</i><sub>0</sub><sup>2</sup></span><span><i>λ</i></span></div>
             = <div class="frac"><span class="top">π <i>D</i><sup>2</sup></span><span>4<i>λ</i></span></div>
@@ -375,10 +421,6 @@ permalink: /laser-calculator/
         const f_unit = parseFloat(document.getElementById('freqUnit').value);
         const f = f_val * f_unit; // 基频 Hz
 
-        const T_val = parseFloat(document.getElementById('pulseWidth').value) || 0;
-        const T_unit = parseFloat(document.getElementById('pulseWidthUnit').value);
-        const T = T_val * T_unit; // 脉宽 s
-
         // 2. 读取 Burst 参数
         const isBurst = document.getElementById('enableBurst').checked;
         let burstCount = 1;
@@ -395,15 +437,14 @@ permalink: /laser-calculator/
             }
         }
 
-        // 3. 计算能量和功率
+        // 3. 计算单脉冲能量
         const powerMode = document.querySelector('input[name="powerMode"]:checked').value;
-        let P_avg = 0; // W
         let E_pulse = 0; // J (单脉冲能量)
 
         if (powerMode === 'power') {
             const P_val = parseFloat(document.getElementById('avgPower').value) || 0;
             const P_unit = parseFloat(document.getElementById('avgPowerUnit').value);
-            P_avg = P_val * P_unit;
+            const P_avg = P_val * P_unit;
             // 能量 = 平均功率 / (重频 * 串内个数)
             if (f > 0 && burstCount > 0) {
                 E_pulse = P_avg / (f * burstCount);
@@ -412,8 +453,6 @@ permalink: /laser-calculator/
             const E_val = parseFloat(document.getElementById('pulseEnergy').value) || 0;
             const E_unit = parseFloat(document.getElementById('pulseEnergyUnit').value);
             E_pulse = E_val * E_unit;
-            // 功率 = 单脉冲能量 * 重频 * 串内个数
-            P_avg = E_pulse * f * burstCount;
         }
 
         // 4. 读取波长（单位换算为 m）
@@ -434,7 +473,7 @@ permalink: /laser-calculator/
             const NA = parseFloat(document.getElementById('naValue').value) || 0.0001;
             
             if (NA > 0 && lambda > 0) {
-                D_m = (4 * lambda) / (Math.PI * NA);
+                D_m = (2 * lambda) / (Math.PI * NA);
             }
         }
 
@@ -442,16 +481,11 @@ permalink: /laser-calculator/
             area_m2 = Math.PI * Math.pow(D_m / 2, 2);
         }
 
-        // 6. 衍生参数
-        // 峰值功率（基于单脉冲能量）
-        const peakPower = (T > 0) ? (0.9394 * E_pulse / T) : 0;
-
+        // 6. 高斯光束能量密度
         // 面积转为 cm² (1 m² = 10000 cm²)
         const area_cm2 = area_m2 * 10000; 
-        
-        const avgIntensity = (area_cm2 > 0) ? (P_avg / area_cm2) : 0; // W/cm²
-        const peakIntensity = (area_cm2 > 0) ? (peakPower / area_cm2) : 0; // W/cm²
-        const fluence = (area_cm2 > 0) ? (E_pulse / area_cm2) : 0; // J/cm²
+        const fluenceAvg = (area_cm2 > 0) ? (E_pulse / area_cm2) : 0; // J/cm²
+        const fluencePeak = 2 * fluenceAvg; // 高斯光束峰值能量密度
 
         // 瑞利长度 z_R = π·w0²/λ = π·D²/(4λ)  单位 m
         let rayleigh = 0;
@@ -477,26 +511,11 @@ permalink: /laser-calculator/
             document.getElementById('outIntraPeriod').innerHTML = `<span style="color:var(--text-light)">未开启</span>`;
         }
 
-        // 峰值功率
-        let peakPowerStr = '-';
-        if (peakPower > 0) {
-            if (peakPower >= 1e6) peakPowerStr = `${formatNumber(peakPower / 1e6)} <span>MW</span>`;
-            else if (peakPower >= 1e3) peakPowerStr = `${formatNumber(peakPower / 1e3)} <span>kW</span>`;
-            else peakPowerStr = `${formatNumber(peakPower)} <span>W</span>`;
-        }
-        document.getElementById('outPeakPower').innerHTML = peakPowerStr;
-
-        // 平均功率密度
-        document.getElementById('outAvgIntensity').innerHTML = avgIntensity > 0 ? 
-            `${formatNumber(avgIntensity)} <span>W/cm²</span>` : '-';
-        
-        // 峰值功率密度
-        document.getElementById('outPeakIntensity').innerHTML = peakIntensity > 0 ? 
-            `${formatNumber(peakIntensity / 1e9)} <span>GW/cm²</span>` : '-';
-
-        // 能量密度 -> 固定为 J/cm²
-        document.getElementById('outFluence').innerHTML = fluence > 0 ? 
-            `${formatNumber(fluence)} <span>J/cm²</span>` : '-';
+        // 平均能量密度与高斯峰值能量密度
+        document.getElementById('outFluenceAvg').innerHTML = fluenceAvg > 0 ?
+            `${formatNumber(fluenceAvg)} <span>J/cm²</span>` : '-';
+        document.getElementById('outFluencePeak').innerHTML = fluencePeak > 0 ?
+            `${formatNumber(fluencePeak)} <span>J/cm²</span>` : '-';
 
         // 瑞利长度（自适应 μm / mm / m）
         let rayleighStr = '-';
@@ -513,9 +532,10 @@ permalink: /laser-calculator/
         }
         document.getElementById('outRayleigh').innerHTML = rayleighStr;
 
-        // 面积
+        // 面积与束腰半径
+        const waistRadiusUm = D_m * 1e6 / 2;
         document.getElementById('outArea').innerHTML = area_m2 > 0 ? 
-            `${formatNumber(area_m2 * 1e12)} <span>μm²</span> <span style="margin-left:10px">| 光斑 D = ${formatNumber(D_m * 1e6)} μm</span>` : '-';
+            `${formatNumber(area_m2 * 1e12)} <span>μm²</span> <span style="margin-left:10px">| D = ${formatNumber(D_m * 1e6)} μm · w₀ = ${formatNumber(waistRadiusUm)} μm</span>` : '-';
     }
 
     // 初始化
